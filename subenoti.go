@@ -36,13 +36,13 @@ func putObject(contenido []byte,id int64) {
         input.ACL = models.PUBLIC_READ_WRITE
         input.Body = contenido
         //input.SourceFile = f.Name //"C:\\install.log"
-        
+
         //requst, output := obs.PutObject(input)
-        obs.PutObject(input) 
-        //fmt.Printf("err:%s,statusCode:%d,code:%s,message:%s\n", requst.Err, requst.StatusCode, requst.Code, requst.Message)
-        //if output != nil {
-        //        fmt.Printf("ETag:%s,VersionId:%s\n", output.ETag, output.VersionId)
-        //}
+        requst,output:=obs.PutObject(input)
+        if requst.err != nil {
+          fmt.Printf("err:%s,statusCode:%d,code:%s,message:%s\n", requst.Err, requst.StatusCode, requst.Code, requst.Message)
+          fmt.Printf("ETag:%s,VersionId:%s\n", output.ETag, output.VersionId)
+        }        
 }
 func main() {
     obs = client.FactoryEx("YGKTCULBWQMWXTB6SHUJ", "sgA4tMY8o41uAXeS4Zzpl6N5SIxQkPNrWWOeFfI9", "", "", "https://obs.sa-argentina-1.telefonicaopencloud.com", true)
@@ -68,11 +68,11 @@ func main() {
        var id int64
        texto:= make([]byte,16000)
        err = rows.Scan(&id, &texto)
-       
+
        showError(err)
        if err != nil {
           // handle this error
-	  fmt.Printf("error haciend selectpara id:%d <--\n", id) 
+	  fmt.Printf("error haciend selectpara id:%d <--\n", id)
           //panic(err)
        }
        //sube la nofificacion firmada
@@ -83,9 +83,5 @@ func main() {
   err = rows.Err()
   if err != nil {
     panic(err)
-  }    
+  }
 }
-
-
-
-
