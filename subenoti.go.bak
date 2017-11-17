@@ -1,0 +1,80 @@
+package main
+
+import (
+    "database/sql"
+    "fmt"
+    "os"
+    _ "github.com/lib/pq"
+    "io/ioutil"
+//  "bytes"
+//  "net/http"
+	"com/client"
+	//"com/logger"
+	"com/models"
+)
+
+func check(e error) {
+    if e != nil {
+        panic(e)
+    }
+}
+var obs *client.Client = nil
+const (  
+  host     = "192.168.0.149" 
+  port     = 8635
+  user     = "mryan"
+  password = "termita000"
+  dbname   = "noti"
+)
+func putObject(contenido []byte) {
+	input := new(models.PutObjectInput)
+	input.Bucket = "listas"
+	input.Object = "noti1"
+	input.ACL = models.PUBLIC_READ_WRITE
+        input.Body = contenido
+	//input.SourceFile = f.Name //"C:\\install.log"
+	requst, output := obs.PutObject(input)
+	fmt.Printf("err:%s,statusCode:%d,code:%s,message:%s\n", requst.Err, requst.StatusCode, requst.Code, requst.Message)
+	if output != nil {
+		fmt.Printf("ETag:%s,VersionId:%s\n", output.ETag, output.VersionId)
+	}
+}
+func main() {
+    psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+    "password=%s dbname=%s sslmode=require",
+    host, port, user, password, dbname)
+    /*--verify-ca sslrootcert=/home/linux/ca-bundle.pem",*/
+
+    db, err := sql.Open("postgres", psqlInfo)  
+    check(err)
+    defer db.Close()  
+      err = db.Ping()
+      if err != nil {
+        panic(err)
+      }
+
+
+    texto:= make([]byte,16000)
+    file, err := ioutil.TempFile(os.TempDir(), "subir")
+    check(err)
+    //defer os.Remove(file.Name())
+    //var id int
+
+    row := db.QueryRow("select texto_pdf from notificaciones where id=$1;", 1000000)  
+    switch err := row.Scan(&texto); err {  
+    case sql.ErrNoRows:  
+      fmt.Println("No rows were returned!")
+    case nil:  
+      _, err := file.Write(texto)
+      check(err)      
+      //fmt.Println(texto)
+      //ioutil.WriteFile("/tmp/prueba.html", texto, 0777)
+      //check(err)
+    default:  
+      panic(err)
+    }
+
+    obs = client.FactoryEx("YGKTCULBWQMWXTB6SHUJ", "sgA4tMY8o41uAXeS4Zzpl6N5SIxQkPNrWWOeFfI9", "", "", "https://obs.sa-argentina-1.telefonicaopencloud.com", true)
+    putObject(texto)
+}
+
