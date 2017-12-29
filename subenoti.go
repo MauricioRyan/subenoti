@@ -41,9 +41,10 @@ func putObject(contenido []byte, id int64) {
 	input.ACL = models.PUBLIC_READ_WRITE
 	input.Body = contenido
 	//input.SourceFile = f.Name //"C:\\install.log"
-
+	log.Print("pre PutObject")
 	//requst, output := obs.PutObject(input)
 	requst, output := obs.PutObject(input)
+	log.Print("post PutObject")
 	log.Printf(">%d<", id)
 	if requst.Err != nil {
 		log.Printf("err:%s,statusCode:%d,code:%s,message:%s\n", requst.Err, requst.StatusCode, requst.Code, requst.Message)
@@ -74,7 +75,7 @@ func main() {
 		panic(err)
 	}
 
-	rows, err := db.Query("select id,texto_pdf from notificaciones where texto_pdf is not null order by id desc;")
+	rows, err := db.Query("select id,texto_pdf from notificaciones where id<5381826 and texto_pdf is not null order by id desc;")
 	showError(err)
 	check(err)
 	defer rows.Close()
@@ -91,7 +92,6 @@ func main() {
 		}
 		//sube la nofificacion firmada
 		putObject(texto, id)
-		//fmt.Print(".")
 	}
 	// get any error encountered during iteration
 	err = rows.Err()
